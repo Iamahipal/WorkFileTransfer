@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TeleTransfer - Telegram File Transfer</title>
+    <title>TeleTransfer - Simple File Transfer to Telegram</title>
     <style>
         * {
             margin: 0;
@@ -11,47 +11,107 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            min-height: 100vh;
-            color: #fff;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            overflow-x: hidden;
+        :root {
+            --primary-color: #4F46E5;
+            --primary-hover: #4338CA;
+            --success-color: #10B981;
+            --error-color: #EF4444;
+            --warning-color: #F59E0B;
+            --bg-gradient-start: #F8F9FF;
+            --bg-gradient-end: #E8EEFF;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+            --card-bg: #FFFFFF;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.05" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,144C960,149,1056,139,1152,122.7C1248,107,1344,85,1392,74.7L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
-            background-size: cover;
-            pointer-events: none;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto 40px;
+            padding: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: fadeInDown 0.6s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-color), #7C3AED);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .settings-btn {
+            padding: 10px 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .settings-btn:hover {
+            background: #F9FAFB;
+            box-shadow: var(--shadow-sm);
         }
 
         .container {
-            max-width: 650px;
+            max-width: 800px;
             width: 100%;
-            position: relative;
-            z-index: 1;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            margin-bottom: 20px;
-            animation: fadeInUp 0.6s ease;
+            margin: 0 auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            animation: fadeInUp 0.8s ease;
         }
 
         @keyframes fadeInUp {
@@ -65,188 +125,41 @@
             }
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 35px;
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
         }
 
-        h1 {
-            font-size: 2.5rem;
+        .card:hover {
+            box-shadow: var(--shadow-xl);
+        }
+
+        .title {
+            font-size: 1.75rem;
             font-weight: 700;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            color: #fff;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .logo {
-            font-size: 2.8rem;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.1);
-            }
+            color: var(--text-primary);
+            margin-bottom: 8px;
         }
 
         .subtitle {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 1.05rem;
-            font-weight: 400;
-            letter-spacing: 0.3px;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
         }
 
-        .connection-status {
-            text-align: center;
-            padding: 12px 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            display: flex;
+        .status-badge {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .connection-status.connected {
-            background: rgba(76, 175, 80, 0.25);
-            color: #a5ff90;
-            border: 1px solid rgba(76, 175, 80, 0.4);
-        }
-
-        .connection-status.disconnected {
-            background: rgba(255, 152, 0, 0.25);
-            color: #ffeb3b;
-            border: 1px solid rgba(255, 152, 0, 0.4);
-        }
-
-        .drop-zone {
-            border: 3px dashed rgba(255, 255, 255, 0.4);
-            border-radius: 20px;
-            padding: 70px 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(255, 255, 255, 0.08);
-            margin-bottom: 25px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .drop-zone::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .drop-zone:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .drop-zone:hover {
-            border-color: rgba(255, 255, 255, 0.7);
-            background: rgba(255, 255, 255, 0.12);
-            transform: translateY(-4px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .drop-zone.drag-over {
-            border-color: #fff;
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.02);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .drop-zone-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            position: relative;
-            z-index: 1;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        .drop-zone-text {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-            position: relative;
-            z-index: 1;
-            color: #fff;
-        }
-
-        .drop-zone-subtext {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.9rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        .file-list {
-            margin-top: 25px;
-            max-height: 400px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-
-        .file-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .file-list::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-        }
-
-        .file-list::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-        }
-
-        .file-list::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-
-        .file-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 18px;
-            border-radius: 14px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 24px;
             animation: slideIn 0.4s ease;
         }
 
@@ -261,10 +174,184 @@
             }
         }
 
+        .status-badge.connected {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-badge.disconnected {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-icon {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, #FAFBFF 0%, #F5F7FF 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drop-zone::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(79, 70, 229, 0.05) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, #F5F7FF 0%, #EEF2FF 100%);
+            transform: translateY(-2px);
+        }
+
+        .drop-zone:hover::before {
+            opacity: 1;
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--primary-color);
+            background: #EEF2FF;
+            transform: scale(1.02);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .drop-zone-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            animation: float 3s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .drop-zone-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .drop-zone-subtext {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .file-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .file-list::-webkit-scrollbar-track {
+            background: #F3F4F6;
+            border-radius: 3px;
+        }
+
+        .file-list::-webkit-scrollbar-thumb {
+            background: #D1D5DB;
+            border-radius: 3px;
+        }
+
+        .file-list::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF;
+        }
+
+        .file-item {
+            background: #F9FAFB;
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s ease;
+            border: 1px solid #F3F4F6;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
         .file-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateX(5px);
-            border-color: rgba(255, 255, 255, 0.3);
+            background: #F3F4F6;
+            transform: translateX(4px);
+        }
+
+        .file-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
         }
 
         .file-info {
@@ -274,103 +361,104 @@
 
         .file-name {
             font-weight: 600;
-            margin-bottom: 6px;
-            word-break: break-word;
-            color: #fff;
-            font-size: 0.95rem;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
         }
 
         .file-size {
-            color: rgba(255, 255, 255, 0.75);
-            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .file-status {
-            margin-left: 15px;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            white-space: nowrap;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
             font-weight: 600;
-            backdrop-filter: blur(10px);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            flex-shrink: 0;
         }
 
         .status-pending {
-            background: rgba(255, 235, 59, 0.3);
-            color: #fff;
-            border: 1px solid rgba(255, 235, 59, 0.5);
+            background: #FEF3C7;
+            color: #92400E;
         }
 
         .status-uploading {
-            background: rgba(33, 150, 243, 0.3);
-            color: #fff;
-            border: 1px solid rgba(33, 150, 243, 0.5);
-            animation: blink 1.5s ease-in-out infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.7;
-            }
+            background: #DBEAFE;
+            color: #1E40AF;
+            animation: pulse 1.5s ease-in-out infinite;
         }
 
         .status-success {
-            background: rgba(76, 175, 80, 0.3);
-            color: #a5ff90;
-            border: 1px solid rgba(76, 175, 80, 0.5);
+            background: #D1FAE5;
+            color: #065F46;
         }
 
         .status-error {
-            background: rgba(244, 67, 54, 0.3);
-            color: #ffcdd2;
-            border: 1px solid rgba(244, 67, 54, 0.5);
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #E5E7EB;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #7C3AED);
+            border-radius: 2px;
+            transition: width 0.3s ease;
         }
 
         .btn {
             width: 100%;
-            padding: 16px;
+            padding: 14px 24px;
             border: none;
-            border-radius: 14px;
-            font-size: 1.05rem;
+            border-radius: 12px;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             margin-top: 12px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .btn:hover::before {
-            width: 400px;
-            height: 400px;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: var(--primary-color);
             color: white;
-            box-shadow: 0 8px 24px rgba(79, 172, 254, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
 
         .btn-primary:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 32px rgba(79, 172, 254, 0.6);
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         .btn-primary:disabled {
@@ -380,103 +468,165 @@
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(10px);
+            background: white;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
+            background: #F9FAFB;
+            border-color: #D1D5DB;
         }
 
-        .settings-panel {
+        .remove-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid #E5E7EB;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .remove-btn:hover {
+            background: #FEE2E2;
+            color: var(--error-color);
+            border-color: #FEE2E2;
+        }
+
+        .settings-modal {
             display: none;
-            margin-top: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
         }
 
-        .settings-panel.show {
-            display: block;
-            animation: slideDown 0.4s ease;
-        }
-
-        @keyframes slideDown {
+        @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(-20px);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
             }
         }
 
-        .settings-card {
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .settings-modal.show {
+            display: flex;
         }
 
-        .settings-card h2 {
-            margin-bottom: 25px;
-            font-size: 1.4rem;
-            color: #fff;
-            text-align: center;
+        .settings-content {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: var(--shadow-xl);
+            animation: scaleIn 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .settings-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
         }
 
         .input-group {
             margin-bottom: 20px;
         }
 
-        .input-group label {
+        .input-label {
             display: block;
-            margin-bottom: 10px;
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 0.95rem;
-            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-weight: 600;
         }
 
-        .input-group input {
+        .input-field {
             width: 100%;
-            padding: 14px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: white;
+            color: var(--text-primary);
             font-size: 0.95rem;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+            font-family: inherit;
         }
 
-        .input-group input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
+        .input-field::placeholder {
+            color: #9CA3AF;
         }
 
-        .input-group input:focus {
+        .input-field:focus {
             outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
         .toast {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
-            padding: 18px 28px;
-            border-radius: 14px;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 12px;
             color: white;
-            font-weight: 600;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            font-weight: 500;
+            box-shadow: var(--shadow-xl);
             transform: translateX(400px);
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            max-width: 380px;
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 2000;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .toast.show {
@@ -484,104 +634,121 @@
         }
 
         .toast-success {
-            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+            background: var(--success-color);
         }
 
         .toast-error {
-            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            background: var(--error-color);
         }
 
         .toast-info {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: var(--primary-color);
         }
 
-        .progress-bar {
+        .toast-icon {
+            font-size: 1.25rem;
+        }
+
+        .footer {
+            max-width: 1200px;
             width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-            margin-top: 10px;
-            overflow: hidden;
+            margin: 40px auto 0;
+            padding: 20px 0;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
         }
 
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 3px;
-        }
-
-        .remove-btn {
-            background: rgba(244, 67, 54, 0.3);
-            color: #ffcdd2;
-            border: 1px solid rgba(244, 67, 54, 0.5);
-            padding: 6px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-left: 12px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .remove-btn:hover {
-            background: rgba(244, 67, 54, 0.5);
-            transform: scale(1.05);
-        }
-
-        @media (max-width: 640px) {
-            .card {
-                padding: 25px;
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
             }
 
-            h1 {
-                font-size: 2rem;
+            .header {
+                margin-bottom: 24px;
             }
 
             .logo {
-                font-size: 2.2rem;
+                font-size: 1.25rem;
+            }
+
+            .logo-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1.1rem;
+            }
+
+            .card {
+                padding: 24px;
+                border-radius: 16px;
+            }
+
+            .title {
+                font-size: 1.5rem;
+            }
+
+            .subtitle {
+                font-size: 0.9rem;
+                margin-bottom: 24px;
             }
 
             .drop-zone {
-                padding: 50px 20px;
+                padding: 40px 16px;
+            }
+
+            .drop-zone-icon {
+                width: 64px;
+                height: 64px;
+                font-size: 2rem;
+            }
+
+            .settings-content {
+                padding: 24px;
             }
 
             .toast {
-                right: 20px;
-                left: 20px;
+                bottom: 16px;
+                right: 16px;
+                left: 16px;
                 max-width: none;
             }
 
             .file-item {
-                flex-direction: column;
-                align-items: flex-start;
+                flex-wrap: wrap;
             }
 
             .file-status, .remove-btn {
-                margin-left: 0;
-                margin-top: 10px;
+                margin-left: 64px;
             }
         }
     </style>
 </head>
 <body>
+    <header class="header">
+        <a href="#" class="logo">
+            <div class="logo-icon">📱</div>
+            <span>TeleTransfer</span>
+        </a>
+        <button class="settings-btn" id="settingsBtn">
+            <span>⚙️</span>
+            Settings
+        </button>
+    </header>
+
     <div class="container">
         <div class="card">
-            <div class="header">
-                <h1><span class="logo">📱</span>TeleTransfer</h1>
-                <p class="subtitle">Instantly transfer files to your Telegram</p>
-            </div>
+            <h1 class="title">Send files to Telegram</h1>
+            <p class="subtitle">Transfer files up to 50 MB directly to your Telegram chat</p>
 
-            <div id="connectionStatus" class="connection-status disconnected">
-                ⚠️ Configure settings to get started
+            <div id="statusBadge" class="status-badge disconnected">
+                <span class="status-icon"></span>
+                <span id="statusText">Configure settings to get started</span>
             </div>
 
             <div class="drop-zone" id="dropZone">
                 <div class="drop-zone-icon">📁</div>
-                <div class="drop-zone-text">Drag & drop files here</div>
-                <div class="drop-zone-subtext">or click to browse (max 50 MB)</div>
+                <div class="drop-zone-text">Drop files here</div>
+                <div class="drop-zone-subtext">or click to browse</div>
             </div>
 
             <input type="file" id="fileInput" class="file-input" multiple>
@@ -589,36 +756,43 @@
             <div id="fileList" class="file-list"></div>
 
             <button class="btn btn-primary" id="sendBtn" disabled>
-                📤 Send to Telegram
+                <span>📤</span>
+                Send to Telegram
             </button>
+        </div>
+    </div>
 
-            <button class="btn btn-secondary" id="settingsBtn">
-                ⚙️ Settings
-            </button>
+    <footer class="footer">
+        <p>TeleTransfer - Simple file transfer to Telegram</p>
+    </footer>
 
-            <div class="settings-panel" id="settingsPanel">
-                <div class="settings-card">
-                    <h2>⚙️ Telegram Settings</h2>
-
-                    <div class="input-group">
-                        <label for="botToken">🤖 Bot Token</label>
-                        <input type="text" id="botToken" placeholder="Enter your bot token">
-                    </div>
-
-                    <div class="input-group">
-                        <label for="chatId">💬 Chat ID</label>
-                        <input type="text" id="chatId" placeholder="Enter your chat ID">
-                    </div>
-
-                    <button class="btn btn-primary" id="saveSettingsBtn">
-                        💾 Save Settings
-                    </button>
-
-                    <button class="btn btn-secondary" id="testConnectionBtn">
-                        🔗 Test Connection
-                    </button>
-                </div>
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2 class="settings-title">Settings</h2>
+                <button class="close-btn" id="closeBtn">×</button>
             </div>
+
+            <div class="input-group">
+                <label class="input-label" for="botToken">Bot Token</label>
+                <input type="text" id="botToken" class="input-field" placeholder="1234567890:ABCdefGHIjklMNOpqrsTUVwxyz">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="chatId">Chat ID</label>
+                <input type="text" id="chatId" class="input-field" placeholder="-1001234567890">
+            </div>
+
+            <button class="btn btn-primary" id="saveSettingsBtn">
+                <span>💾</span>
+                Save Settings
+            </button>
+
+            <button class="btn btn-secondary" id="testConnectionBtn">
+                <span>🔗</span>
+                Test Connection
+            </button>
         </div>
     </div>
 
@@ -629,12 +803,14 @@
         const fileList = document.getElementById('fileList');
         const sendBtn = document.getElementById('sendBtn');
         const settingsBtn = document.getElementById('settingsBtn');
-        const settingsPanel = document.getElementById('settingsPanel');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeBtn = document.getElementById('closeBtn');
         const botTokenInput = document.getElementById('botToken');
         const chatIdInput = document.getElementById('chatId');
         const saveSettingsBtn = document.getElementById('saveSettingsBtn');
         const testConnectionBtn = document.getElementById('testConnectionBtn');
-        const connectionStatus = document.getElementById('connectionStatus');
+        const statusBadge = document.getElementById('statusBadge');
+        const statusText = document.getElementById('statusText');
 
         // State
         let files = [];
@@ -643,18 +819,18 @@
             chatId: ''
         };
 
-        // Load settings from localStorage
+        // Load settings
         function loadSettings() {
             const saved = localStorage.getItem('teletransfer-settings');
             if (saved) {
                 settings = JSON.parse(saved);
                 botTokenInput.value = settings.botToken;
                 chatIdInput.value = settings.chatId;
-                updateConnectionStatus();
+                updateStatus();
             }
         }
 
-        // Save settings to localStorage
+        // Save settings
         function saveSettings() {
             settings.botToken = botTokenInput.value.trim();
             settings.chatId = chatIdInput.value.trim();
@@ -666,21 +842,22 @@
 
             localStorage.setItem('teletransfer-settings', JSON.stringify(settings));
             showToast('Settings saved successfully!', 'success');
-            updateConnectionStatus();
+            updateStatus();
+            settingsModal.classList.remove('show');
         }
 
-        // Update connection status
-        function updateConnectionStatus() {
+        // Update status
+        function updateStatus() {
             if (settings.botToken && settings.chatId) {
-                connectionStatus.className = 'connection-status connected';
-                connectionStatus.textContent = '✓ Ready to send files';
+                statusBadge.className = 'status-badge connected';
+                statusText.textContent = 'Ready to send files';
             } else {
-                connectionStatus.className = 'connection-status disconnected';
-                connectionStatus.textContent = '⚠️ Configure settings to get started';
+                statusBadge.className = 'status-badge disconnected';
+                statusText.textContent = 'Configure settings to get started';
             }
         }
 
-        // Test Telegram connection
+        // Test connection
         async function testConnection() {
             if (!settings.botToken || !settings.chatId) {
                 showToast('Please save settings first', 'error');
@@ -711,20 +888,29 @@
                 }
             } catch (error) {
                 console.error('Connection test error:', error);
-                showToast('Connection failed. Check your network or try a mobile hotspot.', 'error');
+                showToast('Connection failed. Check your network.', 'error');
             }
         }
 
-        // Show toast notification
+        // Show toast
         function showToast(message, type = 'info') {
             const existingToast = document.querySelector('.toast');
             if (existingToast) {
                 existingToast.remove();
             }
 
+            const icons = {
+                success: '✓',
+                error: '✗',
+                info: 'ℹ'
+            };
+
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
-            toast.textContent = message;
+            toast.innerHTML = `
+                <span class="toast-icon">${icons[type]}</span>
+                <span>${message}</span>
+            `;
             document.body.appendChild(toast);
 
             setTimeout(() => toast.classList.add('show'), 100);
@@ -743,9 +929,9 @@
             return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
         }
 
-        // Add files to list
+        // Add files
         function addFiles(newFiles) {
-            const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
+            const MAX_SIZE = 50 * 1024 * 1024;
 
             Array.from(newFiles).forEach(file => {
                 if (file.size > MAX_SIZE) {
@@ -765,14 +951,14 @@
             updateSendButton();
         }
 
-        // Remove file from list
+        // Remove file
         function removeFile(id) {
             files = files.filter(f => f.id !== id);
             renderFiles();
             updateSendButton();
         }
 
-        // Render file list
+        // Render files
         function renderFiles() {
             if (files.length === 0) {
                 fileList.innerHTML = '';
@@ -781,9 +967,12 @@
 
             fileList.innerHTML = files.map(fileObj => `
                 <div class="file-item" data-id="${fileObj.id}">
+                    <div class="file-icon">📄</div>
                     <div class="file-info">
                         <div class="file-name">${fileObj.file.name}</div>
-                        <div class="file-size">${formatFileSize(fileObj.file.size)}</div>
+                        <div class="file-meta">
+                            <span class="file-size">📊 ${formatFileSize(fileObj.file.size)}</span>
+                        </div>
                         ${fileObj.progress !== undefined ? `
                             <div class="progress-bar">
                                 <div class="progress-bar-fill" style="width: ${fileObj.progress}%"></div>
@@ -791,10 +980,10 @@
                         ` : ''}
                     </div>
                     <span class="file-status status-${fileObj.status}">
-                        ${fileObj.status === 'pending' ? '⏳ Pending' :
-                          fileObj.status === 'uploading' ? '📤 Uploading...' :
-                          fileObj.status === 'success' ? '✓ Sent' :
-                          '✗ Failed'}
+                        ${fileObj.status === 'pending' ? 'Pending' :
+                          fileObj.status === 'uploading' ? 'Uploading' :
+                          fileObj.status === 'success' ? 'Sent' :
+                          'Failed'}
                     </span>
                     ${fileObj.status === 'pending' ?
                         `<button class="remove-btn" onclick="removeFile(${fileObj.id})">Remove</button>` : ''}
@@ -802,20 +991,20 @@
             `).join('');
         }
 
-        // Update send button state
+        // Update send button
         function updateSendButton() {
             const hasPendingFiles = files.some(f => f.status === 'pending');
             sendBtn.disabled = !hasPendingFiles || !settings.botToken || !settings.chatId;
         }
 
-        // Send file to Telegram
+        // Send file
         async function sendFileToTelegram(fileObj) {
             const url = `https://api.telegram.org/bot${settings.botToken}/sendDocument`;
 
             const formData = new FormData();
             formData.append('chat_id', settings.chatId);
             formData.append('document', fileObj.file);
-            formData.append('caption', `📎 ${fileObj.file.name}\n📊 Size: ${formatFileSize(fileObj.file.size)}\n\n✨ Sent via TeleTransfer`);
+            formData.append('caption', `📎 ${fileObj.file.name}\n📊 ${formatFileSize(fileObj.file.size)}\n\n✨ Sent via TeleTransfer`);
 
             try {
                 fileObj.status = 'uploading';
@@ -835,12 +1024,12 @@
                     showToast(`${fileObj.file.name} sent successfully!`, 'success');
                 } else {
                     fileObj.status = 'error';
-                    showToast(`Failed to send ${fileObj.file.name}: ${data.description || 'Unknown error'}`, 'error');
+                    showToast(`Failed to send ${fileObj.file.name}`, 'error');
                 }
             } catch (error) {
                 console.error('Upload error:', error);
                 fileObj.status = 'error';
-                showToast(`Failed to send ${fileObj.file.name}. Check network connection.`, 'error');
+                showToast(`Failed to send ${fileObj.file.name}`, 'error');
             }
 
             delete fileObj.progress;
@@ -848,11 +1037,11 @@
             updateSendButton();
         }
 
-        // Send all pending files
+        // Send all files
         async function sendAllFiles() {
             if (!settings.botToken || !settings.chatId) {
                 showToast('Please configure settings first', 'error');
-                settingsPanel.classList.add('show');
+                settingsModal.classList.add('show');
                 return;
             }
 
@@ -872,7 +1061,7 @@
             showToast(`Sent ${pendingFiles.length} file(s) to Telegram`, 'success');
         }
 
-        // Event Listeners
+        // Event listeners
         dropZone.addEventListener('click', () => fileInput.click());
 
         dropZone.addEventListener('dragover', (e) => {
@@ -892,13 +1081,23 @@
 
         fileInput.addEventListener('change', (e) => {
             addFiles(e.target.files);
-            fileInput.value = ''; // Reset input
+            fileInput.value = '';
         });
 
         sendBtn.addEventListener('click', sendAllFiles);
 
         settingsBtn.addEventListener('click', () => {
-            settingsPanel.classList.toggle('show');
+            settingsModal.classList.add('show');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            settingsModal.classList.remove('show');
+        });
+
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                settingsModal.classList.remove('show');
+            }
         });
 
         saveSettingsBtn.addEventListener('click', saveSettings);
