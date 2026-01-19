@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickDrop - Telegram File Transfer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2rem;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #b8b8d1;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .drop-zone {
+            border: 3px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .drop-zone:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .drop-zone.drag-over {
+            border-color: #764ba2;
+            background: rgba(118, 75, 162, 0.2);
+            transform: scale(1.02);
+        }
+
+        .drop-zone-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .drop-zone-text {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .drop-zone-subtext {
+            color: #b8b8d1;
+            font-size: 0.85rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .file-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 500;
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+
+        .file-size {
+            color: #b8b8d1;
+            font-size: 0.85rem;
+        }
+
+        .file-status {
+            margin-left: 15px;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .status-uploading {
+            background: rgba(33, 150, 243, 0.2);
+            color: #2196f3;
+        }
+
+        .status-success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+
+        .status-error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .settings-panel {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .settings-panel.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b8b8d1;
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 350px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-success {
+            background: linear-gradient(45deg, #56ab2f 0%, #a8e063 100%);
+        }
+
+        .toast-error {
+            background: linear-gradient(45deg, #eb3349 0%, #f45c43 100%);
+        }
+
+        .toast-info {
+            background: linear-gradient(45deg, #2196f3 0%, #21cbf3 100%);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .connection-status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .connection-status.connected {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+
+        .connection-status.disconnected {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .remove-btn {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: rgba(244, 67, 54, 0.4);
+        }
+
+        @media (max-width: 640px) {
+            .card {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .drop-zone {
+                padding: 40px 15px;
+            }
+
+            .toast {
+                right: 20px;
+                left: 20px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📤 QuickDrop</h1>
+            <p class="subtitle">Transfer files to Telegram in seconds</p>
+
+            <div id="connectionStatus" class="connection-status disconnected">
+                ⚠️ Configure settings to get started
+            </div>
+
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-icon">📁</div>
+                <div class="drop-zone-text">Drag & drop files here</div>
+                <div class="drop-zone-subtext">or click to browse (max 50 MB)</div>
+            </div>
+
+            <input type="file" id="fileInput" class="file-input" multiple>
+
+            <div id="fileList" class="file-list"></div>
+
+            <button class="btn btn-primary" id="sendBtn" disabled>
+                Send to Telegram
+            </button>
+
+            <button class="btn btn-secondary" id="settingsBtn">
+                ⚙️ Settings
+            </button>
+
+            <div class="settings-panel" id="settingsPanel">
+                <div class="card">
+                    <h2 style="margin-bottom: 20px; font-size: 1.3rem;">Telegram Settings</h2>
+
+                    <div class="input-group">
+                        <label for="botToken">Bot Token</label>
+                        <input type="text" id="botToken" placeholder="8566051800:AAE9JZt2zJw2va1zV0m8v8b4EGf-NQAZyuE">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="chatId">Chat ID</label>
+                        <input type="text" id="chatId" placeholder="-1003427078446">
+                    </div>
+
+                    <button class="btn btn-primary" id="saveSettingsBtn">
+                        Save Settings
+                    </button>
+
+                    <button class="btn btn-secondary" id="testConnectionBtn">
+                        Test Connection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const sendBtn = document.getElementById('sendBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const botTokenInput = document.getElementById('botToken');
+        const chatIdInput = document.getElementById('chatId');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const testConnectionBtn = document.getElementById('testConnectionBtn');
+        const connectionStatus = document.getElementById('connectionStatus');
+
+        // State
+        let files = [];
+        let settings = {
+            botToken: '',
+            chatId: ''
+        };
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const saved = localStorage.getItem('quickdrop-settings');
+            if (saved) {
+                settings = JSON.parse(saved);
+                botTokenInput.value = settings.botToken;
+                chatIdInput.value = settings.chatId;
+                updateConnectionStatus();
+            }
+        }
+
+        // Save settings to localStorage
+        function saveSettings() {
+            settings.botToken = botTokenInput.value.trim();
+            settings.chatId = chatIdInput.value.trim();
+
+            if (!settings.botToken || !settings.chatId) {
+                showToast('Please enter both Bot Token and Chat ID', 'error');
+                return;
+            }
+
+            localStorage.setItem('quickdrop-settings', JSON.stringify(settings));
+            showToast('Settings saved successfully!', 'success');
+            updateConnectionStatus();
+        }
+
+        // Update connection status
+        function updateConnectionStatus() {
+            if (settings.botToken && settings.chatId) {
+                connectionStatus.className = 'connection-status connected';
+                connectionStatus.textContent = '✓ Ready to send files';
+            } else {
+                connectionStatus.className = 'connection-status disconnected';
+                connectionStatus.textContent = '⚠️ Configure settings to get started';
+            }
+        }
+
+        // Test Telegram connection
+        async function testConnection() {
+            if (!settings.botToken || !settings.chatId) {
+                showToast('Please save settings first', 'error');
+                return;
+            }
+
+            showToast('Testing connection...', 'info');
+
+            try {
+                const url = `https://api.telegram.org/bot${settings.botToken}/sendMessage`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: settings.chatId,
+                        text: '✅ QuickDrop connection test successful!\n\nYour bot is properly configured and ready to receive files.'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.ok) {
+                    showToast('Connection successful! Check your Telegram chat.', 'success');
+                } else {
+                    showToast(`Connection failed: ${data.description || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Connection test error:', error);
+                showToast('Connection failed. Check your network or try a mobile hotspot.', 'error');
+            }
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Add files to list
+        function addFiles(newFiles) {
+            const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
+
+            Array.from(newFiles).forEach(file => {
+                if (file.size > MAX_SIZE) {
+                    showToast(`${file.name} exceeds 50 MB limit`, 'error');
+                    return;
+                }
+
+                const fileObj = {
+                    file: file,
+                    id: Date.now() + Math.random(),
+                    status: 'pending'
+                };
+                files.push(fileObj);
+            });
+
+            renderFiles();
+            updateSendButton();
+        }
+
+        // Remove file from list
+        function removeFile(id) {
+            files = files.filter(f => f.id !== id);
+            renderFiles();
+            updateSendButton();
+        }
+
+        // Render file list
+        function renderFiles() {
+            if (files.length === 0) {
+                fileList.innerHTML = '';
+                return;
+            }
+
+            fileList.innerHTML = files.map(fileObj => `
+                <div class="file-item" data-id="${fileObj.id}">
+                    <div class="file-info">
+                        <div class="file-name">${fileObj.file.name}</div>
+                        <div class="file-size">${formatFileSize(fileObj.file.size)}</div>
+                        ${fileObj.progress !== undefined ? `
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill" style="width: ${fileObj.progress}%"></div>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <span class="file-status status-${fileObj.status}">
+                        ${fileObj.status === 'pending' ? '⏳ Pending' :
+                          fileObj.status === 'uploading' ? '📤 Uploading...' :
+                          fileObj.status === 'success' ? '✓ Sent' :
+                          '✗ Failed'}
+                    </span>
+                    ${fileObj.status === 'pending' ?
+                        `<button class="remove-btn" onclick="removeFile(${fileObj.id})">Remove</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Update send button state
+        function updateSendButton() {
+            const hasPendingFiles = files.some(f => f.status === 'pending');
+            sendBtn.disabled = !hasPendingFiles || !settings.botToken || !settings.chatId;
+        }
+
+        // Send file to Telegram
+        async function sendFileToTelegram(fileObj) {
+            const url = `https://api.telegram.org/bot${settings.botToken}/sendDocument`;
+
+            const formData = new FormData();
+            formData.append('chat_id', settings.chatId);
+            formData.append('document', fileObj.file);
+            formData.append('caption', `📎 ${fileObj.file.name}\n📊 Size: ${formatFileSize(fileObj.file.size)}`);
+
+            try {
+                fileObj.status = 'uploading';
+                fileObj.progress = 0;
+                renderFiles();
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.ok) {
+                    fileObj.status = 'success';
+                    fileObj.progress = 100;
+                    showToast(`${fileObj.file.name} sent successfully!`, 'success');
+                } else {
+                    fileObj.status = 'error';
+                    showToast(`Failed to send ${fileObj.file.name}: ${data.description || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                fileObj.status = 'error';
+                showToast(`Failed to send ${fileObj.file.name}. Check network connection.`, 'error');
+            }
+
+            delete fileObj.progress;
+            renderFiles();
+            updateSendButton();
+        }
+
+        // Send all pending files
+        async function sendAllFiles() {
+            if (!settings.botToken || !settings.chatId) {
+                showToast('Please configure settings first', 'error');
+                settingsPanel.classList.add('show');
+                return;
+            }
+
+            const pendingFiles = files.filter(f => f.status === 'pending');
+
+            if (pendingFiles.length === 0) {
+                showToast('No files to send', 'info');
+                return;
+            }
+
+            sendBtn.disabled = true;
+
+            for (const fileObj of pendingFiles) {
+                await sendFileToTelegram(fileObj);
+            }
+
+            showToast(`Sent ${pendingFiles.length} file(s) to Telegram`, 'success');
+        }
+
+        // Event Listeners
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            addFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            addFiles(e.target.files);
+            fileInput.value = ''; // Reset input
+        });
+
+        sendBtn.addEventListener('click', sendAllFiles);
+
+        settingsBtn.addEventListener('click', () => {
+            settingsPanel.classList.toggle('show');
+        });
+
+        saveSettingsBtn.addEventListener('click', saveSettings);
+
+        testConnectionBtn.addEventListener('click', testConnection);
+
+        // Initialize
+        loadSettings();
+        updateSendButton();
+    </script>
+</body>
+</html>
