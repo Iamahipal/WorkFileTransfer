@@ -1,6 +1,6 @@
-# QuickDrop 📤
+# TeleTransfer 📱
 
-A simple, modern web app to transfer files from your PC browser directly to Telegram using the Bot API. No backend required - runs entirely in your browser!
+A beautiful, modern web app to transfer files from your PC browser directly to Telegram using the Bot API. No backend required - runs entirely in your browser!
 
 ## 🚀 Live Demo
 
@@ -44,7 +44,7 @@ Access the app at: `https://yourusername.github.io/WorkFileTransfer/`
 
 ### 3. Configure the App
 
-1. Open QuickDrop in your browser
+1. Open TeleTransfer in your browser
 2. Click the **⚙️ Settings** button
 3. Paste your **Bot Token** and **Chat ID**
 4. Click **Save Settings**
