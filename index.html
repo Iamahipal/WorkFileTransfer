@@ -610,6 +610,21 @@
                         <input type="text" id="chatId" placeholder="Enter your chat ID">
                     </div>
 
+                    <div class="input-group" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="useProxy" style="width: auto; cursor: pointer;">
+                            <span>🔒 Use Proxy (for corporate firewalls)</span>
+                        </label>
+                        <p style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">
+                            Enable if blocked at work. <a href="CLOUDFLARE_SETUP.md" target="_blank" style="color: #4facfe; text-decoration: underline;">Setup guide</a>
+                        </p>
+                    </div>
+
+                    <div class="input-group" id="proxyUrlGroup" style="display: none;">
+                        <label for="proxyUrl">🌐 Cloudflare Worker URL</label>
+                        <input type="text" id="proxyUrl" placeholder="https://your-worker.workers.dev">
+                    </div>
+
                     <button class="btn btn-primary" id="saveSettingsBtn">
                         💾 Save Settings
                     </button>
@@ -632,6 +647,9 @@
         const settingsPanel = document.getElementById('settingsPanel');
         const botTokenInput = document.getElementById('botToken');
         const chatIdInput = document.getElementById('chatId');
+        const useProxyCheckbox = document.getElementById('useProxy');
+        const proxyUrlInput = document.getElementById('proxyUrl');
+        const proxyUrlGroup = document.getElementById('proxyUrlGroup');
         const saveSettingsBtn = document.getElementById('saveSettingsBtn');
         const testConnectionBtn = document.getElementById('testConnectionBtn');
         const connectionStatus = document.getElementById('connectionStatus');
@@ -640,7 +658,9 @@
         let files = [];
         let settings = {
             botToken: '',
-            chatId: ''
+            chatId: '',
+            useProxy: false,
+            proxyUrl: ''
         };
 
         // Load settings from localStorage
@@ -648,8 +668,11 @@
             const saved = localStorage.getItem('teletransfer-settings');
             if (saved) {
                 settings = JSON.parse(saved);
-                botTokenInput.value = settings.botToken;
-                chatIdInput.value = settings.chatId;
+                botTokenInput.value = settings.botToken || '';
+                chatIdInput.value = settings.chatId || '';
+                useProxyCheckbox.checked = settings.useProxy || false;
+                proxyUrlInput.value = settings.proxyUrl || '';
+                toggleProxyUrl();
                 updateConnectionStatus();
             }
         }
@@ -658,15 +681,37 @@
         function saveSettings() {
             settings.botToken = botTokenInput.value.trim();
             settings.chatId = chatIdInput.value.trim();
+            settings.useProxy = useProxyCheckbox.checked;
+            settings.proxyUrl = proxyUrlInput.value.trim();
 
             if (!settings.botToken || !settings.chatId) {
                 showToast('Please enter both Bot Token and Chat ID', 'error');
                 return;
             }
 
+            if (settings.useProxy && !settings.proxyUrl) {
+                showToast('Please enter your Cloudflare Worker URL', 'error');
+                return;
+            }
+
             localStorage.setItem('teletransfer-settings', JSON.stringify(settings));
             showToast('Settings saved successfully!', 'success');
             updateConnectionStatus();
+        }
+
+        // Toggle proxy URL input visibility
+        function toggleProxyUrl() {
+            proxyUrlGroup.style.display = useProxyCheckbox.checked ? 'block' : 'none';
+        }
+
+        // Build Telegram API URL (with or without proxy)
+        function buildApiUrl(path) {
+            if (settings.useProxy && settings.proxyUrl) {
+                // Remove trailing slash from proxy URL if present
+                const baseUrl = settings.proxyUrl.replace(/\/$/, '');
+                return `${baseUrl}${path}`;
+            }
+            return `https://api.telegram.org${path}`;
         }
 
         // Update connection status
@@ -690,7 +735,7 @@
             showToast('Testing connection...', 'info');
 
             try {
-                const url = `https://api.telegram.org/bot${settings.botToken}/sendMessage`;
+                const url = buildApiUrl(`/bot${settings.botToken}/sendMessage`);
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: {
@@ -698,7 +743,7 @@
                     },
                     body: JSON.stringify({
                         chat_id: settings.chatId,
-                        text: '✅ TeleTransfer connection test successful!\n\nYour bot is properly configured and ready to receive files.'
+                        text: '✅ TeleTransfer connection test successful!\n\nYour bot is properly configured and ready to receive files.' + (settings.useProxy ? '\n\n🔒 Using proxy mode!' : '')
                     })
                 });
 
@@ -810,7 +855,7 @@
 
         // Send file to Telegram
         async function sendFileToTelegram(fileObj) {
-            const url = `https://api.telegram.org/bot${settings.botToken}/sendDocument`;
+            const url = buildApiUrl(`/bot${settings.botToken}/sendDocument`);
 
             const formData = new FormData();
             formData.append('chat_id', settings.chatId);
@@ -904,6 +949,8 @@
         saveSettingsBtn.addEventListener('click', saveSettings);
 
         testConnectionBtn.addEventListener('click', testConnection);
+
+        useProxyCheckbox.addEventListener('change', toggleProxyUrl);
 
         // Initialize 
         loadSettings();
